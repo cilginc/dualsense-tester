@@ -36,7 +36,7 @@ jobs:
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: ./prod
-          file: ./Dockerfile
+          context: "{{defaultContext}}:prod"
+          # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
