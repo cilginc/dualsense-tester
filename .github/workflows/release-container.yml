@@ -6,6 +6,9 @@ on:
       - 'v*'  # Such as v1.0.0
     branches:
       - release
+  workflow_run:
+    workflows:
+      - ["Production Release"]
 
 env:
   REGISTRY: ghcr.io
