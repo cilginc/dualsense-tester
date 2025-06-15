@@ -11,6 +11,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          # tüm tag'leri de getirmesi için
+          fetch-tags: true
 
       - name: Setup Git
         run: |
@@ -20,12 +22,39 @@ jobs:
       - name: Push main to release
         run: |
           echo "Starting force push from main branch to release branch"
-          
           git push origin main:release --force
-          
           echo "Push completed!"
+
+      - name: Generate next tag
+        id: tag
+        run: |
+          # En son tag'i al (yoksa v0.0.0 olarak varsay)
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "v0.0.0")
+
+          echo "Latest tag: $latest_tag"
+
+          # Versiyon parçalama
+          IFS='.' read -r -a parts <<< "${latest_tag#v}"
+          major=${parts[0]}
+          minor=${parts[1]}
+          patch=${parts[2]}
+
+          # Patch artır
+          patch=$((patch + 1))
+          new_tag="v$major.$minor.$patch"
+
+          echo "New tag: $new_tag"
+
+          # Çıktı olarak ayarla
+          echo "tag=$new_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push new tag
+        run: |
+          git tag ${{ steps.tag.outputs.tag }}
+          git push origin ${{ steps.tag.outputs.tag }}
 
       - name: Push results
         run: |
-          echo "✅ Master branch has been successfully force-pushed to release branch"
-          echo "Time: $(date)"
+          echo "✅ main branch has been successfully force-pushed to release branch"
+          echo "🕓 Time: $(date)"
+          echo "🏷️ New tag created: ${{ steps.tag.outputs.tag }}"
