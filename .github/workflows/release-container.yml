@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "v*"  # Such as v1.0.0
-  workflow_run:
-    workflows: ["Production Release"]
 
 env:
   REGISTRY: ghcr.io

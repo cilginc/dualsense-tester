@@ -27,6 +27,7 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
+          git checkout release
           # Get all tags
           git fetch --tags
 
