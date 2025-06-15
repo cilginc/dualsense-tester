@@ -55,7 +55,7 @@ jobs:
       - name: Create and push new tag
         run: |
           tag=${{ steps.next_tag.outputs.new_tag }}
-          git tag "$tag"
+          git tag "$tag" release
           git push origin "$tag"
 
       - name: ✅ Done
