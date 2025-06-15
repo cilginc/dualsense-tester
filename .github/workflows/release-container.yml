@@ -7,8 +7,7 @@ on:
     branches:
       - release
   workflow_run:
-    workflows:
-      - ["Production Release"]
+    workflows: ["Production Release"]
 
 env:
   REGISTRY: ghcr.io
