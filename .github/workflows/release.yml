@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository (with tags)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -27,10 +27,9 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          # Tüm tagleri al
+          # Get all tags
           git fetch --tags
 
-          # En son tag'i bul (yoksa v0.0.0)
           latest_tag=$(git tag --sort=-v:refname | head -n 1)
           if [ -z "$latest_tag" ]; then
             latest_tag="v0.0.0"
@@ -44,10 +43,9 @@ jobs:
           old_tag="${{ steps.get_tag.outputs.latest_tag }}"
           echo "Calculating next version from $old_tag"
 
-          # Sayılara böl
+          # Split
           IFS='.' read -r major minor patch <<< "${old_tag#v}"
 
-          # Patch artır
           new_patch=$((patch + 1))
           new_tag="v${major}.${minor}.${new_patch}"
 
