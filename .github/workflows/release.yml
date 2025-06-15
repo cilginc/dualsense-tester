@@ -4,55 +4,64 @@ on:
   workflow_dispatch:
 
 jobs:
-  push-to-release:
+  release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository (with tags)
+        uses: actions/checkout@v3
         with:
-          # fetch-depth: 0
+          fetch-depth: 0
           fetch-tags: true
 
-      - name: Setup Git
+      - name: Configure Git
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-      - name: Push main to release
+      - name: Force push main to release
         run: |
-          echo "Starting force push from main branch to release branch"
+          echo "🔄 Forcing push from main to release branch"
           git push origin main:release --force
-          echo "Push completed!"
 
-      - name: Generate next tag
-        id: tag
+      - name: Get latest tag
+        id: get_tag
         run: |
-          # Get latest tag or use v0.0.0
-          latest_tag=$(git tag -l | tail -n 1 || echo "v0.0.0")
+          # Tüm tagleri al
+          git fetch --tags
 
+          # En son tag'i bul (yoksa v0.0.0)
+          latest_tag=$(git tag --sort=-v:refname | head -n 1)
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
           echo "Latest tag: $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
 
-          IFS='.' read -r -a parts <<< "${latest_tag#v}"
-          major=${parts[0]}
-          minor=${parts[1]}
-          patch=${parts[2]}
+      - name: Calculate next tag
+        id: next_tag
+        run: |
+          old_tag="${{ steps.get_tag.outputs.latest_tag }}"
+          echo "Calculating next version from $old_tag"
 
-          patch=$((patch + 1))
-          new_tag="v$major.$minor.$patch"
+          # Sayılara böl
+          IFS='.' read -r major minor patch <<< "${old_tag#v}"
 
-          echo "New tag: $new_tag"
+          # Patch artır
+          new_patch=$((patch + 1))
+          new_tag="v${major}.${minor}.${new_patch}"
 
-          # Make new tag
-          echo "tag=$new_tag" >> "$GITHUB_OUTPUT"
+          echo "New tag will be: $new_tag"
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
 
       - name: Create and push new tag
         run: |
-          git tag ${{ steps.tag.outputs.tag }}
-          git push origin ${{ steps.tag.outputs.tag }}
+          tag=${{ steps.next_tag.outputs.new_tag }}
+          git tag "$tag"
+          git push origin "$tag"
 
-
-      - name: Push results
+      - name: ✅ Done
         run: |
-          echo "✅ main branch has been successfully force-pushed to release branch"
-          echo "🕓 Time: $(date)"
-          echo "🏷️ New tag created: ${{ steps.tag.outputs.tag }}"
+          echo "🎉 Release branch updated!"
+          echo "📦 Version tagged: ${{ steps.next_tag.outputs.new_tag }}"
+          echo "🕒 Time: $(date)"
