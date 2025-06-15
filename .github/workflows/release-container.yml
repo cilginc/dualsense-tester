@@ -33,10 +33,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debug
+        run: |
+          ls -la
+
       - name: Build and push Docker image to GHCR
         uses: docker/build-push-action@v5
         with:
-          context: "{{defaultContext}}:prod"
+          context: prod
           # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
