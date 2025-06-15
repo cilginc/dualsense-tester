@@ -1,13 +1,8 @@
 name: Build and Push to GHCR on Release Branch with Version Tag
 
 on:
-  push:
-    tags:
-      - 'v*'  # Such as v1.0.0
-    branches:
-      - release
-  # workflow_run:
-  #   workflows: ["Production Release"]
+  workflow_run:
+    workflows: ["Production Release"]
 
 env:
   REGISTRY: ghcr.io
